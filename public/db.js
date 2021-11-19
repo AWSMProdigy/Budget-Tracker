@@ -30,3 +30,39 @@ request.onsuccess = function (event) {
     // access your pending object store
     // add record to your store with add method.
   }
+
+  function checkDatabase() {
+    const transaction = db.transaction(["BudgetDB"], "readwrite");
+    const BudgetStore = transaction.objectStore("BudgetDB");
+    var request = BudgetStore.getAll();
+    return request;
+  
+    // open a transaction on your pending db
+    // access your pending object store
+    // get all records from store and set to a variable
+  
+    getAll.onsuccess = function () {
+      if (getAll.result.length > 0) {
+        fetch('/api/transaction/bulk', {
+          method: 'POST',
+          body: JSON.stringify(getAll.result),
+          headers: {
+            Accept: 'application/json, text/plain, */*',
+            'Content-Type': 'application/json',
+          },
+        })
+          .then((response) => response.json())
+          .then(() => {
+            const transaction = db.transaction(["BudgetDB"], "readwrite");
+            const BudgetStore = transaction.objectStore("BudgetDB");
+            var request = BudgetStore.clear();
+            // if successful, open a transaction on your pending db
+            // access your pending object store
+            // clear all items in your store
+          });
+      }
+    };
+  }
+  
+  // listen for app coming back online
+  window.addEventListener('online', checkDatabase);
