@@ -1,10 +1,9 @@
 let db;
-let budgetVersion;
+let version;
 
-// Create a new db request for a "budget" database.
-const request = indexedDB.open('BudgetDB', budgetVersion || 21);
+const openedIndex = indexedDB.open('BudgetDB', version || 21);
 
-request.onupgradeneeded = function (e) {
+openedIndex.onupgradeneeded = function (e) {
   console.log('Upgrade needed in IndexDB');
 
   const { oldVersion } = e;
@@ -19,7 +18,7 @@ request.onupgradeneeded = function (e) {
   }
 };
 
-request.onerror = function (e) {
+openedIndex.onerror = function (e) {
   console.log(`Woops! ${e.target.errorCode}`);
 };
 
@@ -33,15 +32,14 @@ function checkDatabase() {
   const store = transaction.objectStore('BudgetStore');
 
   // Get all records from store and set to a variable
-  const getAll = store.getAll();
+  const getStore = store.getAll();
 
-  // If the request was successful
-  getAll.onsuccess = function () {
+  getStore.onsuccess = function () {
     // If there are items in the store, we need to bulk add them when we are back online
-    if (getAll.result.length > 0) {
+    if (getStore.result.length > 0) {
       fetch('/api/transaction/bulk', {
         method: 'POST',
-        body: JSON.stringify(getAll.result),
+        body: JSON.stringify(getStore.result),
         headers: {
           Accept: 'application/json, text/plain, */*',
           'Content-Type': 'application/json',
@@ -66,7 +64,7 @@ function checkDatabase() {
   };
 }
 
-request.onsuccess = function (e) {
+openedIndex.onsuccess = function (e) {
   console.log('success');
   db = e.target.result;
 
